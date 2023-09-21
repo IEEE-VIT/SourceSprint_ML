@@ -16,3 +16,5 @@ def image_to_prompt(image):
     image = image.convert('RGB')
     a= ci.interrogate_fast(image)
     return a
+#TO-DO: take user input and display the image that youre using to test and 
+#Search for similar words using fuzz.partial_ratio and a confidence threshold and print if its similar to user input or not
