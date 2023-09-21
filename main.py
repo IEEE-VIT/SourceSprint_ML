@@ -8,3 +8,4 @@ import re
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 from gensim.models import Word2Vec
+#Note: Extra modules may have to be imported
