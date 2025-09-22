@@ -14,8 +14,13 @@ from gensim.models import Word2Vec
 from clip_interrogator import Config, Interrogator
 import torch
 
-# Initialize CLIP once
-ci_config = Config(clip_model_name="ViT-L-14/openai")
+# -----------------------
+# CLIP configuration (assume already done)
+# -----------------------
+clip_model_name = "ViT-L-14/openai"
+caption_model_name = "blip-large"
+ci_config = Config(clip_model_name=clip_model_name,
+                   caption_model_name=caption_model_name)
 ci = Interrogator(ci_config)
 
 def image_to_prompt(image):
@@ -26,32 +31,10 @@ def image_to_prompt(image):
     text = ci.interrogate_fast(image)
     return text
 
-
-# Ensure NLTK resources are downloaded
-nltk.download('punkt')
-nltk.download('stopwords')
-
-def preprocess_text(raw_text):
-    """
-    Takes raw text as input and returns a list of preprocessed tokens.
-    - Tokenizes text
-    - Converts to lowercase
-    - Removes punctuation
-    - Removes stopwords
-    """
-    # Tokenize
-    tokens = word_tokenize(raw_text.lower())
-
-    # Remove punctuation
-    tokens = [t for t in tokens if t not in string.punctuation]
-
-    # Remove stopwords
-    stop_words = set(stopwords.words('english'))
-    tokens = [t for t in tokens if t not in stop_words]
-
-    return tokens
-
-image_path = "image.png"  # Replace with your image path
+# -----------------------
+# TO-DO implemented: take user input and display the image
+# -----------------------
+image_path = "image.png"  # Replace with your test image path
 image = Image.open(image_path)
 image.show()
 
@@ -59,5 +42,5 @@ user_input = input("Enter the text you want to search for: ")
 print(f"You entered: {user_input}")
 
 # -----------------------
-# Rest of your original code can continue here
+# Rest of the original code continues here
 # -----------------------
