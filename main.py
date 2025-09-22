@@ -8,6 +8,7 @@ import re
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 from gensim.models import Word2Vec
+from fuzzywuzzy import fuzz
 # Note: Extra modules may have to be imported
 # TO-DO: Clip configuration
 
@@ -42,5 +43,23 @@ user_input = input("Enter the text you want to search for: ")
 print(f"You entered: {user_input}")
 
 # -----------------------
-# Rest of the original code continues here
+# New TO-DO: Find similar words using trained Word2Vec model
 # -----------------------
+# Load the trained Word2Vec model
+model_path = "word2vec_model.model"  # Replace with your actual model path
+model = Word2Vec.load(model_path)
+
+# Find most similar words
+try:
+    similar_words = model.wv.most_similar(user_input, topn=10)
+    print("\nMost similar words to your input:")
+    for word, similarity in similar_words:
+        print(f"{word} - similarity: {similarity:.2f}")
+except KeyError:
+    print(f"The word '{user_input}' is not in the Word2Vec vocabulary.")
+
+# Optionally, use fuzz.partial_ratio to check similarity with user input
+# for word, similarity in similar_words:
+#     confidence = fuzz.partial_ratio(user_input.lower(), word.lower())
+#     if confidence >= 80:
+#         print(f"Fuzzy match: {word} (Confidence: {confidence}%)")
