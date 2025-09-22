@@ -26,9 +26,31 @@ def image_to_prompt(image):
     text = ci.interrogate_fast(image)
     return text
 
-# -----------------------
-# TO-DO: Take user input and display the image
-# -----------------------
+
+# Ensure NLTK resources are downloaded
+nltk.download('punkt')
+nltk.download('stopwords')
+
+def preprocess_text(raw_text):
+    """
+    Takes raw text as input and returns a list of preprocessed tokens.
+    - Tokenizes text
+    - Converts to lowercase
+    - Removes punctuation
+    - Removes stopwords
+    """
+    # Tokenize
+    tokens = word_tokenize(raw_text.lower())
+
+    # Remove punctuation
+    tokens = [t for t in tokens if t not in string.punctuation]
+
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    tokens = [t for t in tokens if t not in stop_words]
+
+    return tokens
+
 image_path = "image.png"  # Replace with your image path
 image = Image.open(image_path)
 image.show()
@@ -37,5 +59,5 @@ user_input = input("Enter the text you want to search for: ")
 print(f"You entered: {user_input}")
 
 # -----------------------
-# Rest of your original code (Word2Vec, fuzzy search, etc.) can follow here
+# Rest of your original code can continue here
 # -----------------------
