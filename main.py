@@ -1,20 +1,31 @@
-import os, subprocess
-from sklearn import svm
-from joblib import dump, load
 from PIL import Image
+import pytesseract
 import nltk
 import string
 import re
-from nltk.corpus import stopwords
-from nltk.tokenize import sent_tokenize, word_tokenize
-from gensim.models import Word2Vec
-#Note: Extra modules may have to be imported
-#TO-DO: Clip configuration
-def image_to_prompt(image):
-    ci.config.chunk_size = 2048 if ci.config.clip_model_name == "ViT-L-14/openai" else 1024
-    ci.config.flavor_intermediate_count = 2048 if ci.config.clip_model_name == "ViT-L-14/openai" else 1024
-    image = image.convert('RGB')
-    a= ci.interrogate_fast(image)
-    return a
-#TO-DO: take user input and display the image that youre using to test and 
-#Search for similar words using fuzz.partial_ratio and a confidence threshold and print if its similar to user input or not
+
+# Make sure the tokenizer resources are available
+nltk.download('punkt')
+
+# Step 1: Load the image
+image_path = "/mnt/data/acd90d71-000f-4917-a066-0e8f9d161af9.png"
+image = Image.open(image_path)
+
+# Step 2: Extract text using pytesseract
+extracted_text = pytesseract.image_to_string(image)
+
+print("Extracted Text:")
+print(extracted_text)
+
+# Step 3: Tokenize the text
+tokens = nltk.word_tokenize(extracted_text)
+
+# Step 4: Clean the tokens
+cleaned_tokens = [
+    re.sub(r'[^a-zA-Z0-9]', '', token).lower()
+    for token in tokens
+    if re.sub(r'[^a-zA-Z0-9]', '', token) != ''
+]
+
+print("\nCleaned Tokens:")
+print(cleaned_tokens)
