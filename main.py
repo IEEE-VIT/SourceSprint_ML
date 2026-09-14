@@ -31,6 +31,15 @@ def image_to_prompt(image):
     text = ci.interrogate_fast(image)
     return text
 
+def preprocess_text(raw_text):
+    """Tokenize text and remove punctuation and English stopwords."""
+    text_without_punctuation = raw_text.translate(
+        str.maketrans('', '', string.punctuation)
+    )
+    tokens = word_tokenize(text_without_punctuation.lower())
+    stop_words = set(stopwords.words('english'))
+    return [token for token in tokens if token not in stop_words]
+
 # -----------------------
 # TO-DO implemented: take user input and display the image
 # -----------------------
