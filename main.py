@@ -1,18 +1,10 @@
-import os, subprocess
 import argparse
-from sklearn import svm
-from joblib import dump, load
-from PIL import Image
-import nltk
 import string
-import re
+import nltk
+from PIL import Image
 from nltk.corpus import stopwords
-from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.tokenize import word_tokenize
 from gensim.models import Word2Vec
-from fuzzywuzzy import fuzz
-
-from clip_interrogator import Config, Interrogator
-import torch
 
 nltk.download('punkt')
 nltk.download('stopwords')
@@ -35,18 +27,6 @@ def preprocess_text(raw_text):
     tokens = [word for word in tokens if word not in stop_words]
     return tokens
 
-def image_to_prompt(image):
-    image = image.convert('RGB')
-    text = ci.interrogate_fast(image)
-    return text
-
-image_path = args.image_path
-image = Image.open(image_path)
-image.show()
-
-user_input = input("Enter the text you want to search for: ")
-print(f"You entered: {user_input}")
-
 processed_tokens = preprocess_text(user_input)
 
 print("\nPreprocessed tokens:")
@@ -65,25 +45,3 @@ for word in processed_tokens:
 
     except KeyError:
         print(f"The word '{word}' is not in the Word2Vec vocabulary.")
-
-# -----------------------
-# New TO-DO: Find similar words using trained Word2Vec model
-# -----------------------
-# Load the trained Word2Vec model
-model_path = "word2vec_model.model"  # Replace with your actual model path
-model = Word2Vec.load(model_path)
-
-# Find most similar words
-try:
-    similar_words = model.wv.most_similar(user_input, topn=10)
-    print("\nMost similar words to your input:")
-    for word, similarity in similar_words:
-        print(f"{word} - similarity: {similarity:.2f}")
-except KeyError:
-    print(f"The word '{user_input}' is not in the Word2Vec vocabulary.")
-
-# Optionally, use fuzz.partial_ratio to check similarity with user input
-# for word, similarity in similar_words:
-#     confidence = fuzz.partial_ratio(user_input.lower(), word.lower())
-#     if confidence >= 80:
-#         print(f"Fuzzy match: {word} (Confidence: {confidence}%)")
