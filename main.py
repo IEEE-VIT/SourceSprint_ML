@@ -1,4 +1,5 @@
 import os, subprocess
+import argparse
 from sklearn import svm
 from joblib import dump, load
 from PIL import Image
@@ -33,10 +34,13 @@ def image_to_prompt(image):
     return text
 
 # -----------------------
-# TO-DO implemented: take user input and display the image
+# Take image path and user input
 # -----------------------
-image_path = "image.png"  # Replace with your test image path
-image = Image.open(image_path)
+parser = argparse.ArgumentParser(description="Display an image and search for text")
+parser.add_argument("image_path", help="Path to the image")
+args = parser.parse_args()
+
+image = Image.open(args.image_path)
 image.show()
 
 user_input = input("Enter the text you want to search for: ")
