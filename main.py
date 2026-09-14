@@ -1,13 +1,14 @@
-```python
+
 import os, subprocess
 from sklearn import svm
 from joblib import dump, load
 from PIL import Image
 import nltk
 import string
-import re
+import nltk
+from PIL import Image
 from nltk.corpus import stopwords
-from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.tokenize import word_tokenize
 from gensim.models import Word2Vec
 from fuzzywuzzy import fuzz
 
@@ -129,5 +130,4 @@ except KeyError:
 #             f"Fuzzy match: {word} "
 #             f"(Confidence: {confidence}%)"
 #         )
-```
 
