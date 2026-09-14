@@ -8,6 +8,7 @@ from model_inference import (
     image_to_prompt,
     load_clip_model,
     load_word2vec_model,
+    print_similar_words,
 )
 from nlp_preprocessing import preprocess_text
 
@@ -61,12 +62,10 @@ def main(argv=None):
         except KeyError:
             print(f"The word '{user_input}' is not in the Word2Vec vocabulary.")
         else:
-            print("\nMost similar words to your input:")
-            for word, similarity in similar_words:
-                print(f"{word} - similarity: {similarity:.2f}")
+            print_similar_words(similar_words)
     finally:
         image.close()
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

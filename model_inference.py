@@ -32,3 +32,10 @@ def load_word2vec_model(model_path):
 def find_similar_words(model, text, topn=10):
     """Return similar words; propagate KeyError for unknown vocabulary entries."""
     return model.wv.most_similar(text, topn=topn)
+
+
+def print_similar_words(similar_words):
+    """Print similar words and their similarity scores."""
+    print("\nMost similar words to your input:")
+    for word, similarity in similar_words:
+        print(f"{word} - similarity: {similarity:.2f}")
