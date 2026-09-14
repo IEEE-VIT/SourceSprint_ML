@@ -1,4 +1,5 @@
 import os, subprocess
+import argparse
 from sklearn import svm
 from joblib import dump, load
 from PIL import Image
@@ -18,11 +19,15 @@ import torch
 # -----------------------
 # CLIP configuration (assume already done)
 # -----------------------
-clip_model_name = "ViT-L-14/openai"
-caption_model_name = "blip-large"
-ci_config = Config(clip_model_name=clip_model_name,
-                   caption_model_name=caption_model_name)
-ci = Interrogator(ci_config)
+parser = argparse.ArgumentParser(description="Image search using text input")
+parser.add_argument("image_path", help="Path to the image")
+args = parser.parse_args()
+
+image = Image.open(args.image_path)
+image.show()
+
+user_input = input("Enter the text you want to search for: ")
+print(f"You entered: {user_input}")
 
 def image_to_prompt(image):
     """
