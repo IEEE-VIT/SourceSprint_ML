@@ -1,3 +1,4 @@
+```python
 import os, subprocess
 from sklearn import svm
 from joblib import dump, load
@@ -24,6 +25,7 @@ ci_config = Config(clip_model_name=clip_model_name,
                    caption_model_name=caption_model_name)
 ci = Interrogator(ci_config)
 
+
 def image_to_prompt(image):
     """
     Takes a PIL image and returns extracted text using CLIP.
@@ -32,15 +34,33 @@ def image_to_prompt(image):
     text = ci.interrogate_fast(image)
     return text
 
+
 # -----------------------
-# TO-DO implemented: take user input and display the image
+# Take image path from command line and display the image
 # -----------------------
-image_path = "image.png"  # Replace with your test image path
+import argparse
+
+parser = argparse.ArgumentParser(
+    description="Image search using CLIP and Word2Vec"
+)
+
+parser.add_argument(
+    "image_path",
+    help="Path to the image file"
+)
+
+args = parser.parse_args()
+
+image_path = args.image_path
+
+# Open and display the image
 image = Image.open(image_path)
 image.show()
 
+# Prompt the user to enter the text they want to search for
 user_input = input("Enter the text you want to search for: ")
 print(f"You entered: {user_input}")
+
 
 # -----------------------
 # New TO-DO: Find similar words using trained Word2Vec model
@@ -55,11 +75,14 @@ try:
     print("\nMost similar words to your input:")
     for word, similarity in similar_words:
         print(f"{word} - similarity: {similarity:.2f}")
+
 except KeyError:
     print(f"The word '{user_input}' is not in the Word2Vec vocabulary.")
+
 
 # Optionally, use fuzz.partial_ratio to check similarity with user input
 # for word, similarity in similar_words:
 #     confidence = fuzz.partial_ratio(user_input.lower(), word.lower())
 #     if confidence >= 80:
 #         print(f"Fuzzy match: {word} (Confidence: {confidence}%)")
+```
