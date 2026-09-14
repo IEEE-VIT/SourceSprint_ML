@@ -1,22 +1,23 @@
-
-import os, subprocess
-from sklearn import svm
-from joblib import dump, load
-from PIL import Image
-import nltk
+import argparse
 import string
 import nltk
+
 from PIL import Image
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 from gensim.models import Word2Vec
 from fuzzywuzzy import fuzz
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+from clip_interrogator import Config, Interrogator
+
 
 # -----------------------
-# CLIP libraries
+# Download NLTK resources
 # -----------------------
-from clip_interrogator import Config, Interrogator
-import torch
+nltk.download("punkt")
+nltk.download("punkt_tab")
+nltk.download("stopwords")
+
 
 # -----------------------
 # CLIP configuration
@@ -34,32 +35,65 @@ ci = Interrogator(ci_config)
 
 
 # -----------------------
+# Text preprocessing
+# -----------------------
+def preprocess_text(text):
+    """
+    Takes raw text as input and returns a list
+    of preprocessed tokens.
+
+    Processing includes:
+    1. Lowercase conversion
+    2. Punctuation removal
+    3. Tokenization using NLTK
+    4. Stopword removal
+    """
+
+    # Convert text to lowercase
+    text = text.lower()
+
+    # Remove punctuation using string module
+    text = text.translate(
+        str.maketrans("", "", string.punctuation)
+    )
+
+    # Tokenize text using NLTK
+    tokens = word_tokenize(text)
+
+    # Get English stopwords
+    stop_words = set(stopwords.words("english"))
+
+    # Remove stopwords
+    processed_tokens = [
+        word
+        for word in tokens
+        if word not in stop_words
+    ]
+
+    return processed_tokens
+
+
+# -----------------------
 # Image to Prompt
 # -----------------------
 def image_to_prompt(image):
     """
-    Takes a PIL image as input and uses the CLIP model
-    to extract a text description from the image.
-
-    Returns:
-        str: Extracted text description.
+    Takes a PIL image and generates a text
+    description using CLIP Interrogator.
     """
 
-    # Make sure the image is in RGB format
+    # Convert image to RGB
     image = image.convert("RGB")
 
-    # Use CLIP Interrogator to generate a text description
+    # Generate text description
     text = ci.interrogate_fast(image)
 
-    # Return the extracted text as a string
     return str(text)
 
 
 # -----------------------
-# Take image path from command line and display the image
+# Command-line arguments
 # -----------------------
-import argparse
-
 parser = argparse.ArgumentParser(
     description="Image search using CLIP and Word2Vec"
 )
@@ -73,19 +107,27 @@ args = parser.parse_args()
 
 image_path = args.image_path
 
-# Open and display the image using PIL
+
+# -----------------------
+# Open and display image
+# -----------------------
 image = Image.open(image_path)
+
 image.show()
+
 
 # -----------------------
 # Prompt user for search text
 # -----------------------
-user_input = input("Enter the text you want to search for: ")
-print(f"You entered: {user_input}")
+user_input = input(
+    "Enter the text you want to search for: "
+)
+
+print(f"\nYou entered: {user_input}")
 
 
 # -----------------------
-# Convert image to text using CLIP
+# Convert image to text
 # -----------------------
 extracted_text = image_to_prompt(image)
 
@@ -94,40 +136,81 @@ print(extracted_text)
 
 
 # -----------------------
-# Find similar words using trained Word2Vec model
+# Preprocess extracted text
 # -----------------------
+processed_tokens = preprocess_text(extracted_text)
 
-# Load the trained Word2Vec model
+print("\nPreprocessed image text:")
+print(processed_tokens)
+
+
+# -----------------------
+# Preprocess user input
+# -----------------------
+processed_user_input = preprocess_text(user_input)
+
+print("\nPreprocessed user input:")
+print(processed_user_input)
+
+
+# -----------------------
+# Load trained Word2Vec model
+# -----------------------
 model_path = "word2vec_model.model"
+
 model = Word2Vec.load(model_path)
 
-# Find most similar words
-try:
-    similar_words = model.wv.most_similar(user_input, topn=10)
 
-    print("\nMost similar words to your input:")
+# -----------------------
+# Find similar words
+# -----------------------
+if len(processed_user_input) == 0:
 
-    for word, similarity in similar_words:
-        print(f"{word} - similarity: {similarity:.2f}")
+    print("\nNo valid words found in the search input.")
 
-except KeyError:
-    print(
-        f"The word '{user_input}' is not in the Word2Vec vocabulary."
-    )
+else:
+
+    # Use the first preprocessed word
+    search_word = processed_user_input[0]
+
+    try:
+
+        similar_words = model.wv.most_similar(
+            search_word,
+            topn=10
+        )
+
+        print(
+            f"\nMost similar words to '{search_word}':"
+        )
+
+        for word, similarity in similar_words:
+
+            print(
+                f"{word} - similarity: {similarity:.2f}"
+            )
+
+    except KeyError:
+
+        print(
+            f"\nThe word '{search_word}' is not "
+            "in the Word2Vec vocabulary."
+        )
 
 
 # -----------------------
 # Optional fuzzy matching
 # -----------------------
 # for word, similarity in similar_words:
+#
 #     confidence = fuzz.partial_ratio(
 #         user_input.lower(),
 #         word.lower()
 #     )
 #
 #     if confidence >= 80:
+#
 #         print(
 #             f"Fuzzy match: {word} "
 #             f"(Confidence: {confidence}%)"
 #         )
-
