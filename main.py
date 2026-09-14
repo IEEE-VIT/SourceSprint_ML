@@ -131,3 +131,29 @@ except KeyError:
 #             f"(Confidence: {confidence}%)"
 #         )
 
+from gensim.models import Word2Vec
+from fuzzywuzzy import fuzz
+
+def similarity_search():
+    # Load the trained Word2Vec model
+    model = Word2Vec.load("word2vec.model")  # replace with your model filename
+
+    # Get user input
+    user_input = input("Enter a word: ").strip().lower()
+
+    # Fuzzy match to handle typos or partial matches
+    vocab = list(model.wv.key_to_index.keys())
+    best_match = max(vocab, key=lambda w: fuzz.partial_ratio(user_input, w))
+    print(f"\nClosest match found: {best_match}")
+
+    # Find similar words using Word2Vec
+    similar_words = model.wv.most_similar(best_match, topn=10)
+
+    # Print results
+    print("\nSimilar words and their similarity scores:")
+    for word, score in similar_words:
+        print(f"{word}: {score:.4f}")
+
+# Run the function
+if __name__ == "__main__":
+    similarity_search()
