@@ -37,6 +37,11 @@ def image_to_prompt(image):
 # -----------------------
 image_path = "image.png"  # Replace with your test image path
 image = Image.open(image_path)
+try:
+    open(image_path) 
+except FileNotFoundError:
+    print(f"Error: The file '{image_path}' was not found.")
+    exit(1)
 image.show()
 
 user_input = input("Enter the text you want to search for: ")
