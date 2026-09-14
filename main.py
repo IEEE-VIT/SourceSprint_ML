@@ -1,58 +1,58 @@
 import argparse
 
-from image_utils import load_and_show_image, image_to_prompt
-from nlp_utils import preprocess_text, fuzzy_match
-from model_utils import load_model, find_similar_words
+from image_processing import display_image, image_to_prompt, load_image
+from model_inference import (
+    find_similar_words,
+    load_word2vec_model,
+    print_similar_words,
+)
+from nlp_preprocessing import preprocess_text
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description="Extract text from an image and find similar words."
+    )
+    parser.add_argument("image_path", help="Path to the image to process")
+    parser.add_argument(
+        "--model-path",
+        default="word2vec_model.model",
+        help="Path to the trained Word2Vec model",
+    )
+    return parser.parse_args()
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Image search using CLIP and Word2Vec"
-    )
-    parser.add_argument(
-        "image_path",
-        help="Path to the image file"
-    )
-    args = parser.parse_args()
+    args = parse_arguments()
 
-    # Load and display the image
-    image = load_and_show_image(args.image_path)
+    try:
+        image = load_image(args.image_path)
+    except FileNotFoundError:
+        print(f"Error: The file '{args.image_path}' was not found.")
+        return 1
 
-    # Prompt user for search text
+    display_image(image)
+    extracted_text = image_to_prompt(image)
+    processed_tokens = preprocess_text(extracted_text)
+    print(f"Extracted tokens: {processed_tokens}")
+
     user_input = input("Enter the text you want to search for: ")
     print(f"You entered: {user_input}")
 
-    # Convert image to text using CLIP
-    extracted_text = image_to_prompt(image)
-    print("\nText extracted from image using CLIP:")
-    print(extracted_text)
+    try:
+        model = load_word2vec_model(args.model_path)
+    except FileNotFoundError:
+        print(f"Error: The trained Word2Vec model '{args.model_path}' was not found.")
+        return 1
 
-    # Preprocess extracted text
-    tokens = preprocess_text(extracted_text)
-
-    # Load Word2Vec model and find similar words
-    model = load_model("word2vec_model.model")
-    similar_words = find_similar_words(model, user_input, topn=10)
-
-    if similar_words is not None:
-        print("\nMost similar words to your input:")
-        for word, similarity in similar_words:
-            print(f"{word} - similarity: {similarity:.2f}")
-
-        # Optional fuzzy matching against similar words
-        matches = fuzzy_match(user_input, [w for w, _ in similar_words])
-        for word, confidence in matches:
-            print(f"Fuzzy match: {word} (Confidence: {confidence}%)")
-    else:
+    try:
+        similar_words = find_similar_words(model, user_input)
+        print_similar_words(similar_words)
+    except KeyError:
         print(f"The word '{user_input}' is not in the Word2Vec vocabulary.")
 
-    # Fuzzy match against preprocessed extracted-text tokens too
-    token_matches = fuzzy_match(user_input, tokens)
-    if token_matches:
-        print("\nMatch found in picture")
-        for word, confidence in token_matches:
-            print(f"Fuzzy match: {word} (Confidence: {confidence}%)")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
