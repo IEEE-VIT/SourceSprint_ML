@@ -1,3 +1,5 @@
+import os
+
 from PIL import Image
 from clip_interrogator import Config, Interrogator
 
@@ -8,6 +10,8 @@ caption_model_name = "blip-large"
 
 def load_image(image_path):
     """Open and return an image from the provided path."""
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(f"Image file not found: {image_path}")
     return Image.open(image_path)
 
 
@@ -22,5 +26,10 @@ def image_to_prompt(image):
         clip_model_name=clip_model_name,
         caption_model_name=caption_model_name,
     )
-    interrogator = Interrogator(config)
+    try:
+        interrogator = Interrogator(config)
+    except FileNotFoundError as error:
+        raise FileNotFoundError(
+            f"Failed to load CLIP interrogator model files: {error}"
+        ) from error
     return interrogator.interrogate_fast(image.convert("RGB"))

@@ -32,11 +32,20 @@ def main():
         return 1
 
     display_image(image)
-    extracted_text = image_to_prompt(image)
+
+    try:
+        extracted_text = image_to_prompt(image)
+    except FileNotFoundError as error:
+        print(f"Error: {error}")
+        return 1
+
     processed_tokens = preprocess_text(extracted_text)
     print(f"Extracted tokens: {processed_tokens}")
 
     user_input = input("Enter the text you want to search for: ")
+    if not user_input.strip():
+        print("Error: Search text cannot be empty.")
+        return 1
     print(f"You entered: {user_input}")
 
     try:
