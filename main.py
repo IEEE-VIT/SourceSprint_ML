@@ -1,4 +1,5 @@
-import os, subprocess
+import os
+import subprocess
 import argparse
 from sklearn import svm
 from joblib import dump, load
@@ -25,6 +26,7 @@ ci_config = Config(clip_model_name=clip_model_name,
                    caption_model_name=caption_model_name)
 ci = Interrogator(ci_config)
 
+
 def image_to_prompt(image):
     """
     Takes a PIL image and returns extracted text using CLIP.
@@ -33,10 +35,28 @@ def image_to_prompt(image):
     text = ci.interrogate_fast(image)
     return text
 
+
+def preprocess_text(raw_text):
+    """
+    Preprocesses raw text by tokenizing, removing stopwords,
+    and removing punctuation.
+    """
+    tokens = word_tokenize(raw_text)
+    stop_words = set(stopwords.words('english'))
+
+    processed_tokens = [
+        word for word in tokens
+        if word.lower() not in stop_words and word not in string.punctuation
+    ]
+
+    return processed_tokens
+
+
 # -----------------------
 # Take image path and user input
 # -----------------------
-parser = argparse.ArgumentParser(description="Display an image and search for text")
+parser = argparse.ArgumentParser(
+    description="Display an image and search for text")
 parser.add_argument("image_path", help="Path to the image")
 args = parser.parse_args()
 
