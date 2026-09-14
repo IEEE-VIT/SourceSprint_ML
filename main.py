@@ -1,75 +1,58 @@
-import os, subprocess
-from sklearn import svm
-from joblib import dump, load
-from PIL import Image
-import nltk
-import string
-import re
-from nltk.corpus import stopwords
-from nltk.tokenize import sent_tokenize, word_tokenize
-from gensim.models import Word2Vec
-# Note: Extra modules may have to be imported
-# TO-DO: Clip configuration
+import argparse
 
-from clip_interrogator import Config, Interrogator
-import torch
+from image_processing import display_image, image_to_prompt, load_image
+from model_inference import (
+    find_similar_words,
+    load_word2vec_model,
+    print_similar_words,
+)
+from nlp_preprocessing import preprocess_text
 
-# -----------------------
-# CLIP configuration (assume already done)
-# -----------------------
-clip_model_name = "ViT-L-14/openai"
-caption_model_name = "blip-large"
-ci_config = Config(clip_model_name=clip_model_name,
-                   caption_model_name=caption_model_name)
-ci = Interrogator(ci_config)
 
-def image_to_prompt(image):
-    """
-    Takes a PIL image and returns extracted text using CLIP.
-    """
-    image = image.convert('RGB')  # Ensure RGB format
-    text = ci.interrogate_fast(image)
-    return text
-
-def preprocess_text(raw_text):
-    """Tokenize text and remove punctuation and English stopwords."""
-    text_without_punctuation = raw_text.translate(
-        str.maketrans('', '', string.punctuation)
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description="Extract text from an image and find similar words."
     )
-    tokens = word_tokenize(text_without_punctuation.lower())
-    stop_words = set(stopwords.words('english'))
-    return [token for token in tokens if token not in stop_words]
+    parser.add_argument("image_path", help="Path to the image to process")
+    parser.add_argument(
+        "--model-path",
+        default="word2vec_model.model",
+        help="Path to the trained Word2Vec model",
+    )
+    return parser.parse_args()
 
-# -----------------------
-# TO-DO implemented: take user input and display the image
-# -----------------------
-image_path = "image.png"  # Replace with your test image path
-try:
-    image = Image.open(image_path)
-except FileNotFoundError:
-    print(f"Error: The file '{image_path}' was not found.")
-    exit(1)
-image.show()
 
-user_input = input("Enter the text you want to search for: ")
-print(f"You entered: {user_input}")
+def main():
+    args = parse_arguments()
 
-# -----------------------
-# New TO-DO: Find similar words using trained Word2Vec model
-# -----------------------
-# Load the trained Word2Vec model
-model_path = "word2vec_model.model"  # Replace with your actual model path
-try:
-    model = Word2Vec.load(model_path)
-except FileNotFoundError:
-    print(f"Error: The trained Word2Vec model '{model_path}' was not found.")
-    exit(1)
+    try:
+        image = load_image(args.image_path)
+    except FileNotFoundError:
+        print(f"Error: The file '{args.image_path}' was not found.")
+        return 1
 
-# Find most similar words
-try:
-    similar_words = model.wv.most_similar(user_input, topn=10)
-    print("\nMost similar words to your input:")
-    for word, similarity in similar_words:
-        print(f"{word} - similarity: {similarity:.2f}")
-except KeyError:
-    print(f"The word '{user_input}' is not in the Word2Vec vocabulary.")
+    display_image(image)
+    extracted_text = image_to_prompt(image)
+    processed_tokens = preprocess_text(extracted_text)
+    print(f"Extracted tokens: {processed_tokens}")
+
+    user_input = input("Enter the text you want to search for: ")
+    print(f"You entered: {user_input}")
+
+    try:
+        model = load_word2vec_model(args.model_path)
+    except FileNotFoundError:
+        print(f"Error: The trained Word2Vec model '{args.model_path}' was not found.")
+        return 1
+
+    try:
+        similar_words = find_similar_words(model, user_input)
+        print_similar_words(similar_words)
+    except KeyError:
+        print(f"The word '{user_input}' is not in the Word2Vec vocabulary.")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
