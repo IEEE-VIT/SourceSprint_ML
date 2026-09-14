@@ -8,7 +8,6 @@ import re
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 from gensim.models import Word2Vec
-from fuzzywuzzy import fuzz
 # Note: Extra modules may have to be imported
 # TO-DO: Clip configuration
 
@@ -36,9 +35,8 @@ def image_to_prompt(image):
 # TO-DO implemented: take user input and display the image
 # -----------------------
 image_path = "image.png"  # Replace with your test image path
-image = Image.open(image_path)
 try:
-    open(image_path) 
+    image = Image.open(image_path)
 except FileNotFoundError:
     print(f"Error: The file '{image_path}' was not found.")
     exit(1)
@@ -52,7 +50,11 @@ print(f"You entered: {user_input}")
 # -----------------------
 # Load the trained Word2Vec model
 model_path = "word2vec_model.model"  # Replace with your actual model path
-model = Word2Vec.load(model_path)
+try:
+    model = Word2Vec.load(model_path)
+except FileNotFoundError:
+    print(f"Error: The trained Word2Vec model '{model_path}' was not found.")
+    exit(1)
 
 # Find most similar words
 try:
@@ -62,9 +64,3 @@ try:
         print(f"{word} - similarity: {similarity:.2f}")
 except KeyError:
     print(f"The word '{user_input}' is not in the Word2Vec vocabulary.")
-
-# Optionally, use fuzz.partial_ratio to check similarity with user input
-# for word, similarity in similar_words:
-#     confidence = fuzz.partial_ratio(user_input.lower(), word.lower())
-#     if confidence >= 80:
-#         print(f"Fuzzy match: {word} (Confidence: {confidence}%)")
